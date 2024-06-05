@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #order-details {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .order-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .order-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Order Viewer</h1>
+    <label for="order-id">Enter Order ID:</label>
+    <input type="text" id="order-id" placeholder="Order ID">
+    <button onclick="fetchOrder()">Fetch Order</button>
+
+    <div id="order-details"></div>
+
+    <script>
+        async function fetchOrder() {
+            const orderId = document.getElementById('order-id').value;
+            if (!orderId) {
+                alert('Please enter an Order ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:8080/order/${orderId}`);
+                if (!response.ok) {
+                    throw new Error('Order not found');
+                }
+                const order = await response.json();
+                console.log("Order received:", order); // Добавьте это для проверки полученных данных
+                displayOrder(order);
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        function displayOrder(order) {
+            const orderDetails = document.getElementById('order-details');
+            console.log("Displaying order:", order); // Добавьте это для проверки данных перед отображением
+            if (!order || !order.items) {
+                alert("Invalid order data");
+                return;
+            }
+            orderDetails.innerHTML = `
+                <h2>Order Details</h2>
+                <p><strong>Order UID:</strong> ${order.order_uid}</p>
+                <p><strong>Track Number:</strong> ${order.track_number}</p>
+                <p><strong>Entry:</strong> ${order.entry}</p>
+                <h3>Delivery</h3>
+                <p><strong>Name:</strong> ${order.delivery.name}</p>
+                <p><strong>Phone:</strong> ${order.delivery.phone}</p>
+                <p><strong>Zip:</strong> ${order.delivery.zip}</p>
+                <p><strong>City:</strong> ${order.delivery.city}</p>
+                <p><strong>Address:</strong> ${order.delivery.address}</p>
+                <p><strong>Region:</strong> ${order.delivery.region}</p>
+                <p><strong>Email:</strong> ${order.delivery.email}</p>
+                <h3>Payment</h3>
+                <p><strong>Transaction:</strong> ${order.payment.transaction}</p>
+                <p><strong>Currency:</strong> ${order.payment.currency}</p>
+                <p><strong>Provider:</strong> ${order.payment.provider}</p>
+                <p><strong>Amount:</strong> ${order.payment.amount}</p>
+                <p><strong>Payment Date:</strong> ${new Date(order.payment.payment_dt * 1000).toLocaleString()}</p>
+                <p><strong>Bank:</strong> ${order.payment.bank}</p>
+                <p><strong>Delivery Cost:</strong> ${order.payment.delivery_cost}</p>
+                <p><strong>Goods Total:</strong> ${order.payment.goods_total}</p>
+                <p><strong>Custom Fee:</strong> ${order.payment.custom_fee}</p>
+                <h3>Items</h3>
+                ${order.items.map(item => `
+                    <div class="order-item">
+                        <p><strong>Name:</strong> ${item.name}</p>
+                        <p><strong>Price:</strong> ${item.price}</p>
+                        <p><strong>Sale:</strong> ${item.sale}</p>
+                        <p><strong>Total Price:</strong> ${item.total_price}</p>
+                        <p><strong>Brand:</strong> ${item.brand}</p>
+                    </div>
+                `).join('')}
+            `;
+        }
+    </script>
+</body>
+</html>
